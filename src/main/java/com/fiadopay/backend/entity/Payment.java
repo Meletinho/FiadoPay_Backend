@@ -50,6 +50,9 @@ public class Payment {
     @Column(nullable = false, unique = true, length = 64)
     private String idempotencyKey;
 
+    @Column(length = 255)
+    private String declineReason;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
@@ -128,6 +131,14 @@ public class Payment {
 
     public void setIdempotencyKey(String idempotencyKey) {
         this.idempotencyKey = idempotencyKey;
+    }
+
+    public String getDeclineReason() {
+        return declineReason;
+    }
+
+    public void setDeclineReason(String declineReason) {
+        this.declineReason = declineReason;
     }
 
     public Instant getCreatedAt() {

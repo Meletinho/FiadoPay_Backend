@@ -172,4 +172,25 @@ class PaymentControllerTests {
         String id2 = objectMapper.readTree(r2.getResponse().getContentAsString()).get("id").asText();
         org.junit.jupiter.api.Assertions.assertEquals(id1, id2);
     }
+
+    @Test
+    void postPaymentDeclinesWhenHighAmount() throws Exception {
+        Map<String, Object> body = new HashMap<>();
+        body.put("amount", 1200);
+        body.put("currency", "BRL");
+        body.put("method", "CARD");
+        body.put("installments", 1);
+        String json = objectMapper.writeValueAsString(body);
+
+        String idem = UUID.randomUUID().toString();
+
+        mockMvc.perform(post("/payments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer x")
+                .header("X-Idempotency-Key", idem)
+                .content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("DECLINED"))
+                .andExpect(jsonPath("$.declineReason").value(org.hamcrest.Matchers.containsString("HighAmount")));
+    }
 }

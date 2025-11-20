@@ -67,6 +67,7 @@ public class PaymentController {
         r.setStatus(p.getStatus());
         r.setCreatedAt(p.getCreatedAt());
         r.setUpdatedAt(p.getUpdatedAt());
+        r.setDeclineReason(p.getDeclineReason());
         return r;
     }
 }

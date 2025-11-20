@@ -19,6 +19,7 @@ public class PaymentResponse {
     private PaymentStatus status;
     private Instant createdAt;
     private Instant updatedAt;
+    private String declineReason;
 
     public UUID getId() {
         return id;
@@ -98,5 +99,13 @@ public class PaymentResponse {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getDeclineReason() {
+        return declineReason;
+    }
+
+    public void setDeclineReason(String declineReason) {
+        this.declineReason = declineReason;
     }
 }
