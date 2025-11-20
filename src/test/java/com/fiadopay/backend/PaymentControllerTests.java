@@ -139,4 +139,37 @@ class PaymentControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id));
     }
+
+    @Test
+    void postPaymentIsIdempotentWithSameKey() throws Exception {
+        Map<String, Object> body = new HashMap<>();
+        body.put("amount", 120);
+        body.put("currency", "BRL");
+        body.put("method", "CARD");
+        body.put("installments", 1);
+        String json = objectMapper.writeValueAsString(body);
+
+        String idem = UUID.randomUUID().toString();
+
+        MvcResult r1 = mockMvc.perform(post("/payments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer x")
+                .header("X-Idempotency-Key", idem)
+                .content(json))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String id1 = objectMapper.readTree(r1.getResponse().getContentAsString()).get("id").asText();
+
+        MvcResult r2 = mockMvc.perform(post("/payments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer x")
+                .header("X-Idempotency-Key", idem)
+                .content(json))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String id2 = objectMapper.readTree(r2.getResponse().getContentAsString()).get("id").asText();
+        org.junit.jupiter.api.Assertions.assertEquals(id1, id2);
+    }
 }

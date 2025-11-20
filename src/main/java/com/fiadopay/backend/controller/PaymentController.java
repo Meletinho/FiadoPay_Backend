@@ -35,7 +35,7 @@ public class PaymentController {
 
     @PostMapping
     public ResponseEntity<PaymentResponse> create(@Valid @RequestBody PaymentRequest request,
-                                                  @RequestHeader(name = "X-Idempotency-Key", required = false) String idempotencyKey) {
+                                                  @RequestHeader(name = "X-Idempotency-Key") String idempotencyKey) {
         Payment p = paymentService.create(request, idempotencyKey);
         return new ResponseEntity<>(toResponse(p), HttpStatus.CREATED);
     }

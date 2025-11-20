@@ -24,6 +24,10 @@ public class PaymentService {
 
     @Transactional
     public Payment create(PaymentRequest request, String idempotencyKey) {
+        Optional<Payment> existing = paymentRepository.findByIdempotencyKey(idempotencyKey);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
         Payment p = new Payment();
         p.setAmount(request.getAmount());
         p.setCurrency(request.getCurrency());
