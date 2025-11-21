@@ -1,6 +1,8 @@
 package com.fiadopay.backend.service;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +23,12 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final AntiFraudRegistry antiFraudRegistry;
+    private final java.util.concurrent.ExecutorService executorService;
 
-    public PaymentService(PaymentRepository paymentRepository, AntiFraudRegistry antiFraudRegistry) {
+    public PaymentService(PaymentRepository paymentRepository, AntiFraudRegistry antiFraudRegistry, java.util.concurrent.ExecutorService executorService) {
         this.paymentRepository = paymentRepository;
         this.antiFraudRegistry = antiFraudRegistry;
+        this.executorService = executorService;
     }
 
     @Transactional
@@ -38,12 +42,22 @@ public class PaymentService {
         p.setCurrency(request.getCurrency());
         p.setMethod(request.getMethod());
         p.setInstallments(request.getInstallments());
-        p.setInterestRate(BigDecimal.ZERO);
-        p.setTotalAmount(request.getAmount());
+        BigDecimal interestRate = new BigDecimal("0.01");
+        p.setInterestRate(interestRate);
+        p.setTotalAmount(calculateTotal(request.getAmount(), request.getInstallments()));
         p.setStatus(PaymentStatus.PENDING);
         p.setIdempotencyKey(idempotencyKey);
-        processPayment(p);
+        executorService.submit(() -> processPayment(p));
         return paymentRepository.save(p);
+    }
+
+    private BigDecimal calculateTotal(BigDecimal amount, int installments) {
+        BigDecimal rate = new BigDecimal("0.01");
+        BigDecimal onePlusRate = BigDecimal.ONE.add(rate);
+        MathContext mc = new MathContext(20);
+        BigDecimal factor = onePlusRate.pow(installments, mc);
+        BigDecimal total = amount.multiply(factor, mc);
+        return total.setScale(2, RoundingMode.HALF_UP);
     }
 
     public void processPayment(Payment payment) {
