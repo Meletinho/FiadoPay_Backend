@@ -95,3 +95,28 @@ cd backend
 - No PowerShell, `curl` pode ser alias de `Invoke-WebRequest`. Use `curl.exe` ou `Invoke-RestMethod` como nos exemplos.
 - Se `8080` estiver ocupada, execute em `8081` com o parâmetro informado acima.
 - H2 Console em `/h2` não exige `Authorization`.
+ 
+## Atualização— Concorrência, Webhooks e OpenAPI
+- Processamento de pagamentos é assíncrono usando `ExecutorService`.
+- `POST /payments` retorna `PENDING`; o antifraude roda em background e atualiza o status.
+- Webhooks inbound (`POST /webhook/provider`) validam `X-Signature` (HMAC-SHA256) antes de persistir.
+- Documentação dos endpoints disponível em `http://localhost:8080/swagger-ui/index.html`.
+
+## Validação fim-a-fim
+1. Criar pagamento alto (ex.: 1200): retorna `PENDING`.
+2. Consultar `GET /payments/{id}` algumas vezes até ver `DECLINED` com motivo `HighAmount`.
+3. Enviar `POST /webhook/provider` com assinatura válida para atualizar status.
+4. Idempotência: repetir o `POST` com a mesma `X-Idempotency-Key` retorna o mesmo `id`.
+
+## Execução via JAR
+```
+cd backend
+java -jar target\backend-0.0.1-SNAPSHOT.jar
+```
+
+## Testes
+- Idempotência (MockMVC)
+- Juros parcelado 1% a.m.
+- Antifraude HighAmount (inclui polling para fluxo assíncrono)
+- Webhook assinatura HMAC (válida e inválida)
+
