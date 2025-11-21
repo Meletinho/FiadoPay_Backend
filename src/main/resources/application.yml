@@ -29,3 +29,6 @@ logging:
   level:
     com.fiadopay: DEBUG
     org.hibernate.SQL: DEBUG
+ 
+webhook:
+  secret: change_me
