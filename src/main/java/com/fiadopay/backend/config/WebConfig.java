@@ -20,7 +20,11 @@ public class WebConfig implements WebMvcConfigurer {
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
             String uri = request.getRequestURI();
-            if (uri.startsWith("/h2")) {
+            if (uri.startsWith("/h2")
+                    || uri.startsWith("/swagger-ui")
+                    || uri.equals("/swagger-ui.html")
+                    || uri.startsWith("/v3/api-docs")
+                    || uri.startsWith("/webhook")) {
                 return true;
             }
             String auth = request.getHeader("Authorization");

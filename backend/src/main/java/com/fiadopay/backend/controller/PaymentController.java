@@ -21,6 +21,7 @@ import com.fiadopay.backend.entity.Payment;
 import com.fiadopay.backend.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import jakarta.validation.Valid;
 
@@ -28,6 +29,7 @@ import jakarta.validation.Valid;
 @RequestMapping("/payments")
 @Validated
 @Tag(name = "Payments")
+@SecurityRequirement(name = "bearerAuth")
 public class PaymentController {
 
     private final PaymentService paymentService;
