@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -22,6 +24,7 @@ import com.fiadopay.backend.spi.AntiFraudRule;
 
 @Service
 public class PaymentService {
+    private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
     private final PaymentRepository paymentRepository;
     private final AntiFraudRegistry antiFraudRegistry;
@@ -53,6 +56,7 @@ public class PaymentService {
         try {
             saved = paymentRepository.save(p);
         } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // Race condition on idempotency: return the existing record
             return paymentRepository.findByIdempotencyKey(idempotencyKey).orElseThrow();
         }
         processPayment(saved);
@@ -70,6 +74,7 @@ public class PaymentService {
 
     public void processPayment(Payment payment) {
         List<String> reasons = new ArrayList<>();
+        log.info("antifraud rules={} amount={}", antiFraudRegistry.all().size(), payment.getAmount());
         if (antiFraudRegistry.all().isEmpty()) {
             if (payment.getAmount() != null && payment.getAmount().compareTo(new BigDecimal("1000")) > 0) {
                 reasons.add("HighAmount: " + payment.getAmount() + " > 1000.0");

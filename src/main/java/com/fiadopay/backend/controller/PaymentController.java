@@ -19,12 +19,17 @@ import com.fiadopay.backend.dto.PaymentRequest;
 import com.fiadopay.backend.dto.PaymentResponse;
 import com.fiadopay.backend.entity.Payment;
 import com.fiadopay.backend.service.PaymentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/payments")
 @Validated
+@Tag(name = "Payments")
+@SecurityRequirement(name = "bearerAuth")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -34,6 +39,7 @@ public class PaymentController {
     }
 
     @PostMapping
+    @Operation(summary = "Cria pagamento", description = "Cabeçalhos: Authorization: Bearer <token>; X-Idempotency-Key")
     public ResponseEntity<PaymentResponse> create(@Valid @RequestBody PaymentRequest request,
                                                   @RequestHeader(name = "X-Idempotency-Key") String idempotencyKey) {
         Payment p = paymentService.create(request, idempotencyKey);
@@ -41,6 +47,7 @@ public class PaymentController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Busca pagamento por ID")
     public ResponseEntity<PaymentResponse> getById(@PathVariable("id") UUID id) {
         return paymentService.findById(id)
                 .map(e -> ResponseEntity.ok(toResponse(e)))
@@ -48,6 +55,7 @@ public class PaymentController {
     }
 
     @GetMapping
+    @Operation(summary = "Lista pagamentos")
     public ResponseEntity<List<PaymentResponse>> list() {
         List<PaymentResponse> list = paymentService.findAll().stream()
                 .map(this::toResponse)
