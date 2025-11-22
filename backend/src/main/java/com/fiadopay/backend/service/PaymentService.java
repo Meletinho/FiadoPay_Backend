@@ -59,19 +59,7 @@ public class PaymentService {
             // Race condition on idempotency: return the existing record
             return paymentRepository.findByIdempotencyKey(idempotencyKey).orElseThrow();
         }
-        UUID id = saved.getId();
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                executorService.submit(() -> {
-                    try {
-                        paymentRepository.findById(id).ifPresent(PaymentService.this::processPayment);
-                    } catch (Exception e) {
-                        log.error("processPayment error", e);
-                    }
-                });
-            }
-        });
+        processPayment(saved);
         return saved;
     }
 

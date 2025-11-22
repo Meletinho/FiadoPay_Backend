@@ -55,18 +55,7 @@ public class PaymentService {
         } catch (org.springframework.dao.DataIntegrityViolationException ex) {
             return paymentRepository.findByIdempotencyKey(idempotencyKey).orElseThrow();
         }
-        UUID id = saved.getId();
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                executorService.submit(() -> {
-                    try {
-                        paymentRepository.findById(id).ifPresent(PaymentService.this::processPayment);
-                    } catch (Exception e) {
-                    }
-                });
-            }
-        });
+        processPayment(saved);
         return saved;
     }
 
