@@ -1,4 +1,4 @@
-# FiadoPay Backend (Commits 1–5)
+# FiadoPay Backend 
 
 Projeto Spring Boot com H2 que implementa pagamentos, idempotência, anotações customizadas e antifraude.
 
